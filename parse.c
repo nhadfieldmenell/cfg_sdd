@@ -158,7 +158,6 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 	
 	//printf("firstNon %d\n",firstNon);
 	
-	//*
 	SddNode* empties[len][len];
 	
 	for (j = 1; j < len; j++){
@@ -169,7 +168,6 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 			}
 		}
 	}
-	//*/
 	
 	for (j = 1; j < len; j++){
 		for (i = j-1; i >= 0; i--){
@@ -190,11 +188,6 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 						for(mideast = i; mideast < east;mideast++){
 							if (midup != j || mideast != i){
 								delta = sdd_conjoin(delta,empties[mideast][midup],m);
-								/*
-								for(counter = 0; counter < nonTerm; counter++){
-									delta = sdd_conjoin(delta,sdd_manager_literal(0-((midup*(midup+1)/2)*nonTerm+mideast*nonTerm+counter + firstNon),m),m);
-								}
-								//*/
 							}
 						}
 					}
@@ -279,7 +272,7 @@ int main(int argc, char** argv) {
 	termRules[3][1] = 1;
 
 
-	//
+	/*/
 
 	//2^(n-2) total models
 	//pascal's triangle for parsings for a particular length
@@ -290,7 +283,7 @@ int main(int argc, char** argv) {
 	int nonRuleCount = 3;
 	int termRuleCount = 2;
 	int start = 2;
-	int len = 9;
+	int len = 8;
 	int nonRules[nonRuleCount][3];
 	int termRules[termRuleCount][2];
 	
@@ -329,7 +322,7 @@ int main(int argc, char** argv) {
 	6 MN
 	7 OP
 	*/
-	//*
+	/*
 	//0:A 1:B 2:S 3:T 4:U 5:V 6:W 7:X 0:a 1:b
 	
 	int nonTerm = 8;
@@ -449,12 +442,12 @@ int main(int argc, char** argv) {
 	//for(i = 1; i <= len*2; i += 2) returned = sdd_condition(i,returned,m);
 	
 	returned = sdd_condition(1,returned,m);
-	returned = sdd_condition(4,returned,m);
+	returned = sdd_condition(3,returned,m);
 	returned = sdd_condition(5,returned,m);
 	returned = sdd_condition(8,returned,m);
 	returned = sdd_condition(10,returned,m);
-	returned = sdd_condition(11,returned,m);
-	returned = sdd_condition(13,returned,m);
+	returned = sdd_condition(12,returned,m);
+	returned = sdd_condition(14,returned,m);
 	returned = sdd_condition(16,returned,m);
 	
 	//returned = sdd_condition(9,returned,m);
