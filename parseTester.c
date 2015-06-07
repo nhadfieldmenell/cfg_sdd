@@ -45,11 +45,71 @@
 	EF
 	GH
 	   0    1    2    3
-	0 IJKL
-	1 MNOP QRST
-	2 UVWX YZ78 9012
-	3 3456 7890 1234 5678
+	0 AJKL
+	1 MNOP ARST
+	2 UVWX YZS8 9B12
+	3 34S6 789T 1234 5B78
 	  ABST
+	
+	
+	
+	int nonTerm = 7;
+	int term = 2;
+	int nonRuleCount = 6;
+	int termRuleCount = 4;
+	int start = 2;
+	int len = 3;
+	
+	AB
+	CD
+	EF
+	
+	GHIJKLM
+	NOPQRST UVWXYZ7
+	8901234 5678901 2345678
+	ABSTUXY
+	0123456
+	
+	12
+	23
+	56
+	
+	7890123 10
+	4567890 1234567 20
+	8901234 5678901 2345678 30 40
+	
+	12
+	23
+	56
+	78
+	
+	9012345 10
+	6789012 3456789 20
+	0123456 7890123 4567890 30 40 50
+	1234567 8901234 5678901 2345678 60 70
+	ABSTUXY
+	
+	
+	int nonTerm = 3;
+	int term = 2;
+	int nonRuleCount = 3;
+	int termRuleCount = 2;
+	int start = 2;
+	int len = 3;
+	
+	AB
+	CD
+	EF
+	
+	GHI
+	JKL MNO
+	PQR STU VWX
+	
+	aab
+	
+	A
+	-A
+	SSB
 	
 */
 
@@ -59,8 +119,8 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 	SddNode* S[term][len];
 	int i,j,k,index;
 	
-	//S holds an entry for each possible terminal in each possible position in the string
-	//Each cell holds the positive literal for the indicated terminal in that position conjoined the negative literal for each other terminal in that position
+	printf("hi\n");
+	
 	for(j = 0; j < len; j++){
 		for(i = 0; i < term; i++){
 			S[i][j] = sdd_manager_literal(j*term+i+1,m);
@@ -75,19 +135,19 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 	int firstNon = term*len+1;
 	SddNode* T[len][len][nonTerm];
 	
+	T[14][14][1] = sdd_manager_true(m);
+	printf("here\n");
+	
 	//set diagonal according to terminal rules
 	for (index = 0;index < len; index++){
-		//initialize each to false
 		for(k = 0; k < nonTerm; k++){
 			T[index][index][k] = sdd_manager_false(m);
-		}
-		//disjoin each possible terminal rule for each terminal in each position in the string	
+		}	
 		for(i = 0; i < termRuleCount; i++){
 			k = termRules[i][0];
 			int termVal = termRules[i][1];
 			T[index][index][k] = sdd_disjoin(T[index][index][k],S[termVal][index],m);
 		}
-		//conjoin the non-terminal literal for each corresponding cell while conjoining the negative literal for each non-terminal in that position
 		for(k = 0; k < nonTerm; k++){
 			T[index][index][k] = sdd_conjoin(T[index][index][k],sdd_manager_literal((index*(index+1)/2)*nonTerm+index*nonTerm+k + firstNon,m),m);
 			//printf("literalX %d\n",(index*(index+1)/2)*nonTerm+index*nonTerm+k + firstNon);
@@ -103,7 +163,6 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 	
 	SddNode* empties[len][len];
 	
-	//create an array that holds the conjoined negative non-terminal literals for each non-terminal in a position in the 2D T array
 	for (j = 1; j < len; j++){
 		for (i = j-1; i >= 0; i--){
 			empties[i][j] = sdd_manager_true(m);
@@ -113,30 +172,26 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 		}
 	}
 	
-	//printf("a\n");
+	
 	
 	for (j = 1; j < len; j++){
+		printf("j:%d\n",j);
 		for (i = j-1; i >= 0; i--){
+			printf("i:%d\n",i);
 			for(k = 0; k < nonTerm; k++){
 				T[i][j][k] = sdd_manager_false(m);
 			}
-			//printf("b\n");
 			for(index = 0; index < nonRuleCount; index++){
 				int root = nonRules[index][0];
 				int left = nonRules[index][1];
 				int right = nonRules[index][2];
-				//printf("root:%d left:%d right:%d\n",root,left,right);
 				int up;
 				int east = i+1;
 				for(up = i; up < j; up++){
-					//printf("c\n");
-					//printf("i %d up %d left %d east %d j %d right %d\n",i,up,left,east,j,right);
 					//printf("up,east: %d%d\n",up,east);
 					SddNode* delta = sdd_conjoin(T[i][up][left],T[east][j][right],m);
-					//printf("c.5\n");
 					int midup, mideast, counter;
 					for(midup = up+1;midup <= j;midup++){
-						//printf("d\n");
 						for(mideast = i; mideast < east;mideast++){
 							if (midup != j || mideast != i){
 								delta = sdd_conjoin(delta,empties[mideast][midup],m);
@@ -147,7 +202,6 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 					east+=1;	
 				}
 			}
-			//printf("e\n");
 			for(k = 0; k < nonTerm; k++){
 				//printf("literal: %d\n",(j*(j+1)/2)*nonTerm+i*nonTerm+k + firstNon);
 				T[i][j][k] = sdd_conjoin(T[i][j][k],sdd_manager_literal((j*(j+1)/2)*nonTerm+i*nonTerm+k + firstNon,m),m);
@@ -163,7 +217,6 @@ SddNode* sddParsings(SddManager*m, int nonTerm, int term, int nonRules[][3], int
 	return T[0][len-1][start];
 }
 
-//for rules in the form for generateDataset
 void translateRules(int nonRules[][3],int termRules[][2],int nonTerm){
 	int maxRuleCount = 2;
 	double rules[nonTerm][maxRuleCount+1][3];
@@ -315,21 +368,6 @@ void translateRules(int nonRules[][3],int termRules[][2],int nonTerm){
 	}
 }
 
-//utn is a set of non terminal rules of the form "121" which translates to 1 -> 2 1, utt is a set of terminal rules of the form "21" which translates to 2 -> 1
-//if the non-terminal on the left is 0, omit it -> write 022 as just 22
-void transBoth(int utn[],int nonRules[][3],int nonRuleCount,int utt[],int termRules[][2],int termRuleCount){
-	int i;
-	for (i=0;i<nonRuleCount;i++){
-		int firstR = utn[i]%100;
-		nonRules[i][0] = utn[i]/100;
-		nonRules[i][1] = firstR/10;
-		nonRules[i][2] = firstR%10;
-	}
-	for (i=0;i<termRuleCount;i++){
-		termRules[i][0] = utt[i]/10;
-		termRules[i][1] = utt[i]%10;
-	}
-}
 
 void stringToLiterals(int string[],int literals[],int len,int term){
 	int index;
@@ -340,34 +378,49 @@ void stringToLiterals(int string[],int literals[],int len,int term){
 
 int main(int argc, char** argv) {
 	
-	int tmpNonCt = 20;
-	int tmpTermCt = 6;
-	int nonTerm = 6;
-	int term = 5;
-	//int nonRuleCount = atoi(argv[1]);
-	int nonRuleCount = 5;
-	int termRuleCount = 6;
+	//*
+	//*
+	int nonTerm = 3;
+	int term = 2;
+	int nonRuleCount = 3;
+	int termRuleCount = 2;
 	int start = 2;
-	int len = 6;
-	//int nonRules[nonRuleCount][3];
-	int nonRules[tmpNonCt][3];
-	//int termRules[termRuleCount][2];
-	int termRules[tmpTermCt][2];
+	int len = 16;
+	int nonRules[nonRuleCount][3];
+	int termRules[termRuleCount][2];
 	int string[len];
 	//string[0] = 0; string[1] = 0; string[2] = 0; string[3] = 0;
 	int literals[len];	
 	
-	//stringToLiterals(string,literals,len,term);
-	//translateRules(nonRules,termRules,nonTerm);
 	
+	//0:A 1:B 2:S, 0:a 1:b 2:x
 	
+	//S -> AS
+	nonRules[0][0] = 2;
+	nonRules[0][1] = 0;
+	nonRules[0][2] = 2;
 	
-	//0:A 1:B 2:S 3:M 4:N 5:X | 0:a 1:b 2:x 3:m 4:n
-	int utNonRules[20] = {000,111,202,221,201,232,235,222,555,22,43,251,230,333,321,444,522,301,353,1};
-	//int utTermRules[6] = {00,11,52,32,42,01,02,12,10,41,40,51,50,31,30,20,21,22};
-	int utTermRules[6] = {00,11,22,33,44,52};
-	transBoth(utNonRules,nonRules,nonRuleCount,utTermRules,termRules,termRuleCount);
+	//S -> SB
+	nonRules[1][0] = 2;
+	nonRules[1][1] = 2;
+	nonRules[1][2] = 1;
 	
+	//S -> AB
+	nonRules[2][0] = 2;
+	nonRules[2][1] = 0;
+	nonRules[2][2] = 1;
+	
+	//A -> a
+	termRules[0][0] = 0;
+	termRules[0][1] = 0;
+	
+	//B -> b
+	termRules[1][0] = 1;
+	termRules[1][1] = 1;
+	
+	//A -> x
+	termRules[2][0] = 0;
+	termRules[2][1] = 2;
 
 	// initialize manager
 	SddLiteral var_count = term*len + nonTerm*len*(len+1)/2; // initial number of variables
@@ -376,45 +429,14 @@ int main(int argc, char** argv) {
 	Vtree* vtree = sdd_vtree_new(var_count, "right");
 	SddManager* m = sdd_manager_new(vtree);
 	
+	
 	SddNode* returned = sddParsings(m,nonTerm,term,nonRules,termRules,nonRuleCount,termRuleCount,start,len);
-	
-	FILE *countOut;
-	countOut = fopen("testResults/countVsNonRule4.txt","a");
-	FILE *sizeOut;
-	sizeOut = fopen("testResults/sizeVsNonRule4.txt","a");
-	
-	
-	
-	int size = sdd_size(returned);
-	int nodeCount = sdd_manager_count(m);
-	int modelCount = sdd_model_count(returned,m);
-	
-	/*
-	printf("size: %d\n",size);
-	printf("nodeCount: %d\n",nodeCount);
-	printf("modelCount: %d\n",modelCount);
-	*/
-	
-	fprintf(countOut,"(%d,%d),",nonRuleCount,modelCount);
-	fprintf(sizeOut,"(%d,%d),",nonRuleCount,size);
-	
-	//sdd_save("../psdd/data/base/parsings.sdd",returned);
-	//sdd_vtree_save("../psdd/data/base/parsings.vtree",vtree);
 
-	SddNode* tester;
-	int i;
 
-	/*
-	//returned = sdd_condition(9,returned,m);
 	int modelCount = sdd_model_count(returned,m);
 	printf("count: %d\n",modelCount);
 	int size = sdd_size(returned);
 	printf("size %d\n",size);
-	*/
-	
-
-	
-	//sdd_save_as_dot("cfgSdd.dot",returned);
 	
 	
 	// free manager
