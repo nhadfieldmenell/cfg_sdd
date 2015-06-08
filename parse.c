@@ -376,6 +376,8 @@ int main(int argc, char** argv) {
 	Vtree* vtree = sdd_vtree_new(var_count, "right");
 	SddManager* m = sdd_manager_new(vtree);
 	
+	sdd_manager_auto_gc_and_minimize_on(m);
+	
 	SddNode* returned = sddParsings(m,nonTerm,term,nonRules,termRules,nonRuleCount,termRuleCount,start,len);
 	
 	FILE *countOut;
@@ -398,8 +400,8 @@ int main(int argc, char** argv) {
 	fprintf(countOut,"(%d,%d),",nonRuleCount,modelCount);
 	fprintf(sizeOut,"(%d,%d),",nonRuleCount,size);
 	
-	//sdd_save("../psdd/data/base/parsings.sdd",returned);
-	//sdd_vtree_save("../psdd/data/base/parsings.vtree",vtree);
+	sdd_save("../psdd/data/base/parsings.sdd",returned);
+	sdd_vtree_save("../psdd/data/base/parsings.vtree",vtree);
 
 	SddNode* tester;
 	int i;
