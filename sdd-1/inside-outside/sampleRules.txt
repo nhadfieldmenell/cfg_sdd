@@ -1,8 +1,0 @@
-S --> A S
-S --> A B
-S --> y
-A --> A A
-A --> a
-A --> x
-B --> B B
-B --> b
